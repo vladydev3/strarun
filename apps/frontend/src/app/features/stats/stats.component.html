@@ -1,0 +1,106 @@
+<div class="stats">
+  <div class="stats-header">
+    <h1>Statistics</h1>
+    <p class="subtitle">Your training insights</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading statistics...</div>
+  } @else if (!isConnected()) {
+    <div class="not-connected card">
+      <h2>Connect to Strava</h2>
+      <p>Connect your Strava account to see your statistics.</p>
+      <a routerLink="/settings" class="connect-btn">Go to Settings →</a>
+    </div>
+  } @else {
+    <!-- Year to Date Summary -->
+    <section class="ytd-summary">
+      <h2>Year to Date</h2>
+      <div class="ytd-grid">
+        <div class="ytd-card">
+          <div class="ytd-value">{{ formatDistance(yearToDate().totalDistance) }}</div>
+          <div class="ytd-label">Total Distance</div>
+        </div>
+        <div class="ytd-card">
+          <div class="ytd-value">{{ formatDuration(yearToDate().totalTime) }}</div>
+          <div class="ytd-label">Total Time</div>
+        </div>
+        <div class="ytd-card">
+          <div class="ytd-value">{{ yearToDate().totalActivities }}</div>
+          <div class="ytd-label">Activities</div>
+        </div>
+        <div class="ytd-card">
+          <div class="ytd-value">{{ yearToDate().totalElevation | number }} m</div>
+          <div class="ytd-label">Elevation Gain</div>
+        </div>
+        <div class="ytd-card highlight">
+          <div class="ytd-value">{{ formatDistance(yearToDate().longestRun) }}</div>
+          <div class="ytd-label">Longest Run</div>
+        </div>
+        <div class="ytd-card highlight">
+          <div class="ytd-value">{{ yearToDate().fastestPace }} /km</div>
+          <div class="ytd-label">Fastest Pace</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Period Selector -->
+    <section class="period-stats">
+      <div class="section-header">
+        <h2>Training Volume</h2>
+        <div class="period-selector">
+          <button 
+            class="period-btn" 
+            [class.active]="selectedPeriod() === 'week'"
+            (click)="setPeriod('week')">
+            Weekly
+          </button>
+          <button 
+            class="period-btn" 
+            [class.active]="selectedPeriod() === 'month'"
+            (click)="setPeriod('month')">
+            Monthly
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        @if (selectedPeriod() === 'week') {
+          @for (stat of weeklyStats(); track stat.week) {
+            <div class="chart-row">
+              <div class="chart-label">{{ stat.week }}</div>
+              <div class="chart-bar-container">
+                <div 
+                  class="chart-bar" 
+                  [style.width.%]="getBarWidth(stat.distance)">
+                </div>
+                <span class="chart-value">{{ formatDistance(stat.distance) }}</span>
+              </div>
+              <div class="chart-meta">
+                <span>{{ stat.activities }} activities</span>
+                <span>{{ formatDuration(stat.time) }}</span>
+              </div>
+            </div>
+          }
+        } @else {
+          @for (stat of monthlyStats(); track stat.month) {
+            <div class="chart-row">
+              <div class="chart-label">{{ stat.month }}</div>
+              <div class="chart-bar-container">
+                <div 
+                  class="chart-bar" 
+                  [style.width.%]="getBarWidth(stat.distance)">
+                </div>
+                <span class="chart-value">{{ formatDistance(stat.distance) }}</span>
+              </div>
+              <div class="chart-meta">
+                <span>{{ stat.activities }} activities</span>
+                <span>{{ formatDuration(stat.time) }}</span>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>

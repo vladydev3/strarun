@@ -1,0 +1,108 @@
+<div class="activities">
+  <div class="activities-header">
+    <h1>Activities</h1>
+    <p class="subtitle">Your training history</p>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <span class="filter-label">Type:</span>
+      <button 
+        class="filter-btn" 
+        [class.active]="filter() === 'all'"
+        (click)="setFilter('all')">
+        All
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filter() === 'run'"
+        (click)="setFilter('run')">
+        🏃 Run
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filter() === 'ride'"
+        (click)="setFilter('ride')">
+        🚴 Ride
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="filter() === 'swim'"
+        (click)="setFilter('swim')">
+        🏊 Swim
+      </button>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">Sort:</span>
+      <button 
+        class="filter-btn" 
+        [class.active]="sortBy() === 'date'"
+        (click)="setSortBy('date')">
+        Date
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="sortBy() === 'distance'"
+        (click)="setSortBy('distance')">
+        Distance
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="sortBy() === 'time'"
+        (click)="setSortBy('time')">
+        Time
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading activities...</div>
+  } @else if (!isConnected()) {
+    <div class="not-connected card">
+      <h2>Connect to Strava</h2>
+      <p>Connect your Strava account to see your activities.</p>
+      <a routerLink="/settings" class="connect-btn">Go to Settings →</a>
+    </div>
+  } @else {
+    <div class="activities-table">
+      <div class="table-header">
+        <div class="col-type">Type</div>
+        <div class="col-name">Activity</div>
+        <div class="col-date">Date</div>
+        <div class="col-distance">Distance</div>
+        <div class="col-time">Time</div>
+        <div class="col-pace">Pace/Speed</div>
+        <div class="col-elevation">Elevation</div>
+        <div class="col-hr">Avg HR</div>
+      </div>
+
+      @for (activity of filteredActivities; track activity.id) {
+        <a class="table-row" [routerLink]="['/activities', activity.id]">
+          <div class="col-type">
+            <span class="activity-icon">{{ getActivityIcon(activity.type) }}</span>
+          </div>
+          <div class="col-name">
+            <span class="activity-name">{{ activity.name }}</span>
+          </div>
+          <div class="col-date">{{ formatDate(activity.start_date) }}</div>
+          <div class="col-distance">{{ formatDistance(activity.distance) }}</div>
+          <div class="col-time">{{ formatDuration(activity.moving_time) }}</div>
+          <div class="col-pace">{{ formatPace(activity.average_speed, activity.type) }}</div>
+          <div class="col-elevation">{{ activity.total_elevation_gain }} m</div>
+          <div class="col-hr">
+            @if (activity.average_heartrate) {
+              <span class="hr-value">{{ activity.average_heartrate }} bpm</span>
+            } @else {
+              <span class="hr-na">—</span>
+            }
+          </div>
+        </a>
+      } @empty {
+        <div class="no-activities">
+          <p>No activities found matching your filters.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

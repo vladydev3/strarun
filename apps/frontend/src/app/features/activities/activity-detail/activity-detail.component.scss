@@ -1,0 +1,257 @@
+.activity-detail {
+  max-width: 900px;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem;
+  color: var(--color-text-muted);
+}
+
+// Header
+.detail-header {
+  margin-bottom: 2rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.activity-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.activity-icon {
+  font-size: 2.5rem;
+}
+
+.title-info {
+  h1 {
+    font-size: 1.75rem;
+    margin: 0;
+  }
+}
+
+.activity-date {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.activity-description {
+  margin-top: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+// Key Stats
+.key-stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 500px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+
+  &.primary {
+    background: linear-gradient(135deg, var(--color-primary), #e04502);
+    color: white;
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+// Social Stats
+.social-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.social-item {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+// Tabs
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 500;
+  }
+}
+
+// Tab Content
+.tab-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+// Overview Tab
+.stats-grid {
+  display: grid;
+  gap: 0;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.stat-name {
+  color: var(--color-text-muted);
+}
+
+.stat-val {
+  font-weight: 600;
+}
+
+// Splits Tab
+.splits-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.splits-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 100px 80px;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.splits-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 100px 80px;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.col-km {
+  font-weight: 600;
+}
+
+.col-elev {
+  &.positive {
+    color: #e74c3c;
+  }
+
+  &.negative {
+    color: #27ae60;
+  }
+}
+
+// Laps Tab
+.laps-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lap-card {
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.lap-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.lap-name {
+  font-weight: 600;
+}
+
+.lap-distance {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.lap-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}

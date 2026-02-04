@@ -1,0 +1,239 @@
+import { Injectable, inject, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+import { ApiService } from './api.service';
+import { CacheService } from './cache.service';
+import { environment } from '../../../environments/environment';
+
+export interface StravaAthlete {
+  id: number;
+  firstname: string;
+  lastname: string;
+  profile: string;
+  profile_medium: string;
+  city: string;
+  state: string;
+  country: string;
+}
+
+export interface StravaActivity {
+  id: number;
+  name: string;
+  type: string;
+  sport_type: string;
+  start_date: string;
+  start_date_local: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  average_cadence?: number;
+  kudos_count: number;
+  comment_count: number;
+}
+
+export interface AuthToken {
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+  athlete: StravaAthlete;
+}
+
+export interface AthleteStats {
+  biggest_ride_distance: number;
+  biggest_climb_elevation_gain: number;
+  recent_ride_totals: ActivityTotals;
+  recent_run_totals: ActivityTotals;
+  recent_swim_totals: ActivityTotals;
+  ytd_ride_totals: ActivityTotals;
+  ytd_run_totals: ActivityTotals;
+  ytd_swim_totals: ActivityTotals;
+  all_ride_totals: ActivityTotals;
+  all_run_totals: ActivityTotals;
+  all_swim_totals: ActivityTotals;
+}
+
+export interface ActivityTotals {
+  count: number;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+  elevation_gain: number;
+}
+
+export interface ActivityDetail {
+  id: number;
+  name: string;
+  type: string;
+  sport_type: string;
+  start_date: string;
+  start_date_local: string;
+  timezone?: string;
+  description?: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  average_cadence?: number;
+  calories?: number;
+  kudos_count?: number;
+  comment_count?: number;
+  splits_metric?: Split[];
+  laps?: Lap[];
+}
+
+export interface Split {
+  distance: number;
+  elapsed_time: number;
+  moving_time: number;
+  average_speed: number;
+  elevation_difference: number;
+  average_heartrate?: number;
+  split: number;
+}
+
+export interface Lap {
+  id: number;
+  name: string;
+  elapsed_time: number;
+  moving_time: number;
+  distance: number;
+  average_speed: number;
+  max_speed: number;
+  average_heartrate?: number;
+  max_heartrate?: number;
+  lap_index: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class StravaService {
+  private api = inject(ApiService);
+  private cache = inject(CacheService);
+  
+  isAuthenticated = signal(false);
+  currentAthlete = signal<StravaAthlete | null>(null);
+
+  constructor() {
+    this.checkAuthStatus();
+  }
+
+  private checkAuthStatus(): void {
+    const token = localStorage.getItem('strava_token');
+    if (token) {
+      const tokenData = JSON.parse(token) as AuthToken;
+      if (tokenData.expires_at * 1000 > Date.now()) {
+        this.isAuthenticated.set(true);
+        this.currentAthlete.set(tokenData.athlete);
+      } else {
+        this.refreshToken(tokenData.refresh_token);
+      }
+    }
+  }
+
+  getAuthUrl(): string {
+    const params = new URLSearchParams({
+      client_id: environment.strava.clientId,
+      redirect_uri: environment.strava.redirectUri,
+      response_type: 'code',
+      scope: 'read,activity:read_all,profile:read_all'
+    });
+    return `https://www.strava.com/oauth/authorize?${params.toString()}`;
+  }
+
+  exchangeToken(code: string): Observable<AuthToken> {
+    return this.api.post<AuthToken>('/api/auth/token', { code }).pipe(
+      tap(token => {
+        localStorage.setItem('strava_token', JSON.stringify(token));
+        this.isAuthenticated.set(true);
+        this.currentAthlete.set(token.athlete);
+      })
+    );
+  }
+
+  refreshToken(refreshToken: string): Observable<AuthToken> {
+    return this.api.post<AuthToken>('/api/auth/refresh', { refresh_token: refreshToken }).pipe(
+      tap(token => {
+        localStorage.setItem('strava_token', JSON.stringify(token));
+        this.isAuthenticated.set(true);
+        this.currentAthlete.set(token.athlete);
+      })
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem('strava_token');
+    this.cache.clearAll(); // Clear cache on logout
+    this.isAuthenticated.set(false);
+    this.currentAthlete.set(null);
+  }
+
+  getActivities(page = 1, perPage = 30): Observable<StravaActivity[]> {
+    const cacheKey = `activities_${page}_${perPage}`;
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<StravaActivity[]>(`/api/activities?page=${page}&per_page=${perPage}`)
+    );
+  }
+
+  getActivity(id: number): Observable<StravaActivity> {
+    const cacheKey = `activity_${id}`;
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<StravaActivity>(`/api/activities/${id}`)
+    );
+  }
+
+  getActivityDetail(id: number): Observable<ActivityDetail> {
+    const cacheKey = `activity_detail_${id}`;
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<ActivityDetail>(`/api/activities/${id}`)
+    );
+  }
+
+  getActivityLaps(id: number): Observable<Lap[]> {
+    const cacheKey = `activity_laps_${id}`;
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<Lap[]>(`/api/activities/${id}/laps`)
+    );
+  }
+
+  getAthleteStats(athleteId: number): Observable<AthleteStats> {
+    const cacheKey = `athlete_stats_${athleteId}`;
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<AthleteStats>(`/api/stats/${athleteId}`)
+    );
+  }
+
+  getAthlete(): Observable<StravaAthlete> {
+    const cacheKey = 'athlete_profile';
+    return this.cache.getOrFetch(
+      cacheKey,
+      () => this.api.get<StravaAthlete>('/api/athlete')
+    );
+  }
+
+  /**
+   * Force refresh data by clearing cache for a specific pattern
+   */
+  refreshActivities(): void {
+    this.cache.invalidatePattern('activities');
+  }
+
+  refreshActivity(id: number): void {
+    this.cache.remove(`activity_${id}`);
+    this.cache.remove(`activity_detail_${id}`);
+    this.cache.remove(`activity_laps_${id}`);
+  }
+}

@@ -1,0 +1,95 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Your fitness overview at a glance</p>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">Loading your stats...</div>
+  } @else if (!isConnected()) {
+    <div class="not-connected card">
+      <h2>Connect to Strava</h2>
+      <p>Connect your Strava account to see your activities and stats.</p>
+      <a routerLink="/settings" class="connect-btn">Go to Settings →</a>
+    </div>
+  } @else if (recentActivities().length === 0) {
+    <div class="no-activities card">
+      <h2>No Activities Yet</h2>
+      <p>Your recent activities from Strava will appear here.</p>
+    </div>
+  } @else {
+    <!-- Stats Cards -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">🏆</span>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().totalActivities }}</span>
+          <span class="stat-label">Total Activities</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">📏</span>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatDistance(stats().totalDistance) }} km</span>
+          <span class="stat-label">Total Distance</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">⏱️</span>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatTime(stats().totalTime) }}</span>
+          <span class="stat-label">Total Time</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-icon">⛰️</span>
+        <div class="stat-content">
+          <span class="stat-value">{{ stats().totalElevation.toLocaleString() }} m</span>
+          <span class="stat-label">Total Elevation</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- This Week Section -->
+    <section class="week-summary card">
+      <h2>This Week</h2>
+      <div class="week-stats">
+        <div class="week-stat">
+          <span class="week-value">{{ stats().thisWeekActivities }}</span>
+          <span class="week-label">Activities</span>
+        </div>
+        <div class="week-stat">
+          <span class="week-value">{{ formatDistance(stats().thisWeekDistance) }} km</span>
+          <span class="week-label">Distance</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Activities -->
+    <section class="recent-activities card">
+      <div class="section-header">
+        <h2>Recent Activities</h2>
+        <a routerLink="/activities" class="view-all">View All →</a>
+      </div>
+
+      <div class="activities-list">
+        @for (activity of recentActivities(); track activity.id) {
+          <a [routerLink]="['/activities', activity.id]" class="activity-item">
+            <span class="activity-icon">{{ getActivityIcon(activity.type) }}</span>
+            <div class="activity-info">
+              <span class="activity-name">{{ activity.name }}</span>
+              <span class="activity-date">{{ activity.start_date | date:'mediumDate' }}</span>
+            </div>
+            <div class="activity-stats">
+              <span class="activity-distance">{{ formatDistance(activity.distance) }} km</span>
+              <span class="activity-time">{{ formatTime(activity.moving_time) }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>

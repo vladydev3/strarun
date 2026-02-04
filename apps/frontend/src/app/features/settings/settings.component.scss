@@ -1,0 +1,287 @@
+.settings {
+  max-width: 800px;
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem;
+  color: var(--color-text-muted);
+}
+
+// Sections
+.settings-section {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+  }
+}
+
+// Connection Card
+.connection-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+
+  &.connected {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1.5rem;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  &.disconnected {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 3rem;
+    text-align: center;
+  }
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.profile-location {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.status-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.connected {
+    background: #d4edda;
+    color: #155724;
+  }
+}
+
+.connection-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.connect-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  .strava-logo {
+    font-size: 3rem;
+  }
+
+  p {
+    color: var(--color-text-muted);
+  }
+}
+
+// Settings Card
+.settings-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-label {
+  font-weight: 500;
+}
+
+.setting-description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.setting-input {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  font-size: 0.875rem;
+  min-width: 160px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+// Toggle Switch
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: 0.3s;
+  border-radius: 26px;
+
+  &::before {
+    position: absolute;
+    content: '';
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+input:checked + .toggle-slider::before {
+  transform: translateX(22px);
+}
+
+// Buttons
+.btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+
+  &:hover {
+    background: #e04502;
+  }
+}
+
+.btn-secondary {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+
+  &:hover {
+    background: var(--color-border);
+  }
+}
+
+.btn-danger {
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+
+  &:hover {
+    background: #dc3545;
+    color: white;
+  }
+}
+
+.btn-strava {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+
+  &:hover {
+    background: #e04502;
+  }
+}
+
+// Actions
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

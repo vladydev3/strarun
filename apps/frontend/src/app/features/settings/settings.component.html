@@ -1,0 +1,131 @@
+<div class="settings">
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your account and preferences</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading settings...</div>
+  } @else {
+    <!-- Strava Connection -->
+    <section class="settings-section">
+      <h2>Strava Connection</h2>
+      
+      @if (isConnected()) {
+        <div class="connection-card connected">
+          <div class="profile-info">
+            <img 
+              [src]="profile()?.profile" 
+              [alt]="profile()?.firstname"
+              class="profile-avatar">
+            <div class="profile-details">
+              <span class="profile-name">
+                {{ profile()?.firstname }} {{ profile()?.lastname }}
+              </span>
+              <span class="profile-location">
+                {{ profile()?.city }}, {{ profile()?.country }}
+              </span>
+            </div>
+          </div>
+          <div class="connection-status">
+            <span class="status-badge connected">Connected</span>
+          </div>
+          <div class="connection-actions">
+            <button class="btn btn-secondary" (click)="syncNow()">
+              🔄 Sync Now
+            </button>
+            <button class="btn btn-danger" (click)="disconnectStrava()">
+              Disconnect
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="connection-card disconnected">
+          <div class="connect-prompt">
+            <span class="strava-logo">🏃</span>
+            <p>Connect your Strava account to sync your activities</p>
+          </div>
+          <button class="btn btn-strava" (click)="connectStrava()">
+            Connect with Strava
+          </button>
+        </div>
+      }
+    </section>
+
+    <!-- Sync Settings -->
+    <section class="settings-section">
+      <h2>Sync Settings</h2>
+      <div class="settings-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Sync Frequency</span>
+            <span class="setting-description">How often to sync new activities</span>
+          </div>
+          <select 
+            class="setting-input"
+            [ngModel]="settings().syncFrequency"
+            (ngModelChange)="settings().syncFrequency = $event">
+            <option value="15m">Every 15 minutes</option>
+            <option value="1h">Every hour</option>
+            <option value="6h">Every 6 hours</option>
+            <option value="24h">Once a day</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Private Activities</span>
+            <span class="setting-description">Include activities marked as private</span>
+          </div>
+          <label class="toggle">
+            <input 
+              type="checkbox"
+              [ngModel]="settings().showPrivateActivities"
+              (ngModelChange)="settings().showPrivateActivities = $event">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Display Settings -->
+    <section class="settings-section">
+      <h2>Display Preferences</h2>
+      <div class="settings-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Distance Unit</span>
+            <span class="setting-description">Unit for displaying distances</span>
+          </div>
+          <select 
+            class="setting-input"
+            [ngModel]="settings().distanceUnit"
+            (ngModelChange)="settings().distanceUnit = $event">
+            <option value="km">Kilometers</option>
+            <option value="mi">Miles</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Pace Unit</span>
+            <span class="setting-description">Unit for displaying pace</span>
+          </div>
+          <select 
+            class="setting-input"
+            [ngModel]="settings().paceUnit"
+            (ngModelChange)="settings().paceUnit = $event">
+            <option value="min/km">min/km</option>
+            <option value="min/mi">min/mi</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="settings-actions">
+      <button class="btn btn-primary" (click)="saveSettings()">
+        Save Settings
+      </button>
+    </div>
+  }
+</div>

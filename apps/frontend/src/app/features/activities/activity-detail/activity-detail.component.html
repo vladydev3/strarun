@@ -1,0 +1,175 @@
+<div class="activity-detail">
+  @if (loading()) {
+    <div class="loading">Loading activity...</div>
+  } @else if (!isConnected()) {
+    <div class="not-connected card">
+      <h2>Connect to Strava</h2>
+      <p>Connect your Strava account to see activity details.</p>
+      <a routerLink="/settings" class="connect-btn">Go to Settings →</a>
+    </div>
+  } @else if (activity(); as act) {
+    <!-- Header -->
+    <div class="detail-header">
+      <a routerLink="/activities" class="back-link">← Back to Activities</a>
+      
+      <div class="activity-title">
+        <span class="activity-icon">{{ getActivityIcon(act.type) }}</span>
+        <div class="title-info">
+          <h1>{{ act.name }}</h1>
+          <p class="activity-date">{{ formatDate(act.start_date) }}</p>
+        </div>
+      </div>
+
+      @if (act.description) {
+        <p class="activity-description">{{ act.description }}</p>
+      }
+    </div>
+
+    <!-- Key Stats -->
+    <div class="key-stats">
+      <div class="stat-card primary">
+        <div class="stat-value">{{ formatDistance(act.distance) }}</div>
+        <div class="stat-label">Distance</div>
+      </div>
+      <div class="stat-card primary">
+        <div class="stat-value">{{ formatDuration(act.moving_time) }}</div>
+        <div class="stat-label">Moving Time</div>
+      </div>
+      <div class="stat-card primary">
+        <div class="stat-value">{{ formatPace(act.average_speed) }}</div>
+        <div class="stat-label">Avg Pace</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ act.total_elevation_gain }} m</div>
+        <div class="stat-label">Elevation</div>
+      </div>
+      @if (act.average_heartrate) {
+        <div class="stat-card">
+          <div class="stat-value">{{ act.average_heartrate }} bpm</div>
+          <div class="stat-label">Avg Heart Rate</div>
+        </div>
+      }
+      @if (act.calories) {
+        <div class="stat-card">
+          <div class="stat-value">{{ act.calories }}</div>
+          <div class="stat-label">Calories</div>
+        </div>
+      }
+    </div>
+
+    <!-- Social Stats -->
+    @if (act.kudos_count || act.comment_count) {
+      <div class="social-stats">
+        <span class="social-item">👍 {{ act.kudos_count || 0 }} kudos</span>
+        <span class="social-item">💬 {{ act.comment_count || 0 }} comments</span>
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button 
+        class="tab" 
+        [class.active]="activeTab() === 'overview'"
+        (click)="setActiveTab('overview')">
+        Overview
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab() === 'splits'"
+        (click)="setActiveTab('splits')">
+        Splits
+      </button>
+      <button 
+        class="tab" 
+        [class.active]="activeTab() === 'laps'"
+        (click)="setActiveTab('laps')">
+        Laps
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      @if (activeTab() === 'overview') {
+        <div class="overview-tab">
+          <div class="stats-grid">
+            <div class="stat-row">
+              <span class="stat-name">Elapsed Time</span>
+              <span class="stat-val">{{ formatDuration(act.elapsed_time) }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-name">Max Speed</span>
+              <span class="stat-val">{{ formatPace(act.max_speed) }}</span>
+            </div>
+            @if (act.max_heartrate) {
+              <div class="stat-row">
+                <span class="stat-name">Max Heart Rate</span>
+                <span class="stat-val">{{ act.max_heartrate }} bpm</span>
+              </div>
+            }
+            @if (act.average_cadence) {
+              <div class="stat-row">
+                <span class="stat-name">Avg Cadence</span>
+                <span class="stat-val">{{ act.average_cadence }} spm</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab() === 'splits' && splits.length > 0) {
+        <div class="splits-tab">
+          <div class="splits-table">
+            <div class="splits-header">
+              <span class="col-km">KM</span>
+              <span class="col-pace">Pace</span>
+              <span class="col-elev">Elev</span>
+              <span class="col-hr">HR</span>
+            </div>
+            @for (split of splits; track split.split; let i = $index) {
+              <div class="splits-row">
+                <span class="col-km">{{ split.split }}</span>
+                <span class="col-pace">{{ formatPace(split.average_speed) }}</span>
+                <span class="col-elev" [class.positive]="split.elevation_difference > 0" [class.negative]="split.elevation_difference < 0">
+                  {{ split.elevation_difference > 0 ? '+' : '' }}{{ split.elevation_difference }} m
+                </span>
+                <span class="col-hr">
+                  @if (split.average_heartrate) {
+                    {{ split.average_heartrate }}
+                  } @else {
+                    —
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab() === 'laps' && laps().length > 0) {
+        <div class="laps-tab">
+          @for (lap of laps(); track lap.id) {
+            <div class="lap-card">
+              <div class="lap-header">
+                <span class="lap-name">{{ lap.name }}</span>
+                <span class="lap-distance">{{ formatDistance(lap.distance) }}</span>
+              </div>
+              <div class="lap-stats">
+                <span>{{ formatDuration(lap.moving_time) }}</span>
+                <span>{{ formatPace(lap.average_speed) }}</span>
+                @if (lap.average_heartrate) {
+                  <span>{{ lap.average_heartrate }} bpm</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="not-found card">
+      <h2>Activity Not Found</h2>
+      <p>The activity you're looking for doesn't exist or couldn't be loaded.</p>
+      <a routerLink="/activities" class="back-btn">← Back to Activities</a>
+    </div>
+  }
+</div>
