@@ -1,6 +1,6 @@
 """Authentication endpoints for Strava OAuth."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
@@ -12,7 +12,7 @@ strava_auth = StravaAuthService()
 
 
 @router.get("/strava")
-async def strava_auth_redirect():
+async def strava_auth_redirect(request: Request):
     """
     Redirect to Strava authorization page.
     Initiates the OAuth2 flow with Strava.
@@ -23,18 +23,38 @@ async def strava_auth_redirect():
             detail="Strava client ID not configured. Set STRAVA_CLIENT_ID env variable.",
         )
 
-    auth_url = strava_auth.get_authorization_url()
-    return RedirectResponse(url=auth_url)
+    auth_url, state = strava_auth.get_authorization_url()
+    response = RedirectResponse(url=auth_url)
+    response.set_cookie(
+        "strava_oauth_state",
+        state,
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+        path="/",
+    )
+    return response
 
 
 @router.get("/callback", response_model=TokenResponse)
-async def strava_callback(code: str, scope: str = ""):
+async def strava_callback(
+    request: Request,
+    response: Response,
+    code: str,
+    scope: str = "",
+    state: str | None = None,
+):
     """
     Handle Strava OAuth callback.
     Exchanges authorization code for access tokens.
     """
+    stored_state = request.cookies.get("strava_oauth_state")
+    if not state or not stored_state or state != stored_state:
+        raise HTTPException(status_code=400, detail="Invalid OAuth state.")
+
     try:
         tokens = await strava_auth.exchange_code(code)
+        response.delete_cookie("strava_oauth_state")
         return tokens
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

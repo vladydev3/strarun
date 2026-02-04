@@ -140,13 +140,7 @@ export class StravaService {
   }
 
   getAuthUrl(): string {
-    const params = new URLSearchParams({
-      client_id: environment.strava.clientId,
-      redirect_uri: environment.strava.redirectUri,
-      response_type: 'code',
-      scope: 'read,activity:read_all,profile:read_all'
-    });
-    return `https://www.strava.com/oauth/authorize?${params.toString()}`;
+    return `${environment.apiUrl}/api/auth/strava`;
   }
 
   exchangeToken(code: string): Observable<AuthToken> {

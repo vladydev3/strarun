@@ -74,6 +74,10 @@ STRAVA_CLIENT_SECRET=tu_client_secret
 SECRET_KEY=tu_secret_key
 ```
 
+## Seguridad OAuth (state)
+
+El backend ahora genera un `state` aleatorio al iniciar OAuth (`/api/auth/strava`), lo guarda en una cookie `HttpOnly`, `SameSite=Lax` (con `Secure` cuando se usa HTTPS) y lo valida en el callback (`/api/auth/callback`). Asegúrate de iniciar el flujo desde el endpoint backend para que el estado se valide correctamente.
+
 ## Licencia
 
 MIT
