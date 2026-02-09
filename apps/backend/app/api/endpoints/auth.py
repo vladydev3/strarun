@@ -1,7 +1,6 @@
 """Authentication endpoints for Strava OAuth."""
 
-from fastapi import APIRouter, HTTPException, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, HTTPException
 
 from app.core.config import settings
 from app.models.auth import TokenResponse, AuthStatus, TokenRequest, RefreshTokenRequest
@@ -12,10 +11,10 @@ strava_auth = StravaAuthService()
 
 
 @router.get("/strava")
-async def strava_auth_redirect(request: Request):
+async def strava_auth_redirect():
     """
-    Redirect to Strava authorization page.
-    Initiates the OAuth2 flow with Strava.
+    Get Strava authorization URL.
+    Returns the URL for frontend to redirect user to Strava OAuth page.
     """
     if not settings.STRAVA_CLIENT_ID:
         raise HTTPException(
@@ -24,42 +23,7 @@ async def strava_auth_redirect(request: Request):
         )
 
     auth_url, state = strava_auth.get_authorization_url()
-    response = RedirectResponse(url=auth_url)
-    response.set_cookie(
-        "strava_oauth_state",
-        state,
-        httponly=True,
-        secure=request.url.scheme == "https",
-        samesite="lax",
-        path="/",
-        max_age=300,
-    )
-    return response
-
-
-@router.get("/callback", response_model=TokenResponse)
-async def strava_callback(
-    request: Request,
-    response: Response,
-    code: str,
-    scope: str = "",
-    state: str | None = None,
-):
-    """
-    Handle Strava OAuth callback.
-    Exchanges authorization code for access tokens.
-    """
-    stored_state = request.cookies.get("strava_oauth_state")
-    if not state or not stored_state or state != stored_state:
-        response.delete_cookie("strava_oauth_state")
-        raise HTTPException(status_code=400, detail="Invalid OAuth state.")
-
-    try:
-        tokens = await strava_auth.exchange_code(code)
-        response.delete_cookie("strava_oauth_state", path="/")
-        return tokens
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return {"auth_url": auth_url, "state": state}
 
 
 @router.get("/status", response_model=AuthStatus)

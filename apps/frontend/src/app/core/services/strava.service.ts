@@ -139,11 +139,34 @@ export class StravaService {
     }
   }
 
-  getAuthUrl(): string {
-    return `${environment.apiUrl}/api/auth/strava`;
+  getAuthUrl(): Observable<{auth_url: string, state: string}> {
+    return this.api.get<{auth_url: string, state: string}>('/api/auth/strava');
   }
 
-  exchangeToken(code: string): Observable<AuthToken> {
+  initiateAuth(): void {
+    this.getAuthUrl().subscribe({
+      next: (response) => {
+        // Store state for validation on callback
+        sessionStorage.setItem('oauth_state', response.state);
+        // Redirect to Strava
+        window.location.href = response.auth_url;
+      },
+      error: (err) => {
+        console.error('Failed to get auth URL:', err);
+      }
+    });
+  }
+
+  exchangeToken(code: string, state?: string): Observable<AuthToken> {
+    // Validate state if provided
+    if (state) {
+      const storedState = sessionStorage.getItem('oauth_state');
+      if (!storedState || storedState !== state) {
+        throw new Error('Invalid OAuth state');
+      }
+      sessionStorage.removeItem('oauth_state');
+    }
+    
     return this.api.post<AuthToken>('/api/auth/token', { code }).pipe(
       tap(token => {
         localStorage.setItem('strava_token', JSON.stringify(token));
