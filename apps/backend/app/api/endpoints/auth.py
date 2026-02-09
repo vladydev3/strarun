@@ -32,6 +32,7 @@ async def strava_auth_redirect(request: Request):
         secure=request.url.scheme == "https",
         samesite="lax",
         path="/",
+        max_age=300,
     )
     return response
 
