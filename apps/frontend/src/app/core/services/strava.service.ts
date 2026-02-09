@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 import { CacheService } from './cache.service';
 import { environment } from '../../../environments/environment';
@@ -162,7 +162,8 @@ export class StravaService {
     if (state) {
       const storedState = sessionStorage.getItem('oauth_state');
       if (!storedState || storedState !== state) {
-        throw new Error('Invalid OAuth state');
+        sessionStorage.removeItem('oauth_state');
+        return throwError(() => new Error('OAuth state validation failed. This may indicate a security issue or expired authentication request. Please try signing in again.'));
       }
       sessionStorage.removeItem('oauth_state');
     }
