@@ -55,7 +55,7 @@ async def strava_callback(
 
     try:
         tokens = await strava_auth.exchange_code(code)
-        response.delete_cookie("strava_oauth_state")
+        response.delete_cookie("strava_oauth_state", path="/")
         return tokens
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
