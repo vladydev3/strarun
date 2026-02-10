@@ -87,6 +87,7 @@ export class AuthCallbackComponent implements OnInit {
 
   ngOnInit() {
     const code = this.route.snapshot.queryParamMap.get('code');
+    const state = this.route.snapshot.queryParamMap.get('state');
     const errorParam = this.route.snapshot.queryParamMap.get('error');
 
     if (errorParam) {
@@ -101,11 +102,11 @@ export class AuthCallbackComponent implements OnInit {
       return;
     }
 
-    this.exchangeCode(code);
+    this.exchangeCode(code, state || undefined);
   }
 
-  private exchangeCode(code: string) {
-    this.stravaService.exchangeToken(code).subscribe({
+  private exchangeCode(code: string, state?: string) {
+    this.stravaService.exchangeToken(code, state).subscribe({
       next: () => {
         this.router.navigate(['/dashboard']);
       },
@@ -118,6 +119,6 @@ export class AuthCallbackComponent implements OnInit {
   }
 
   retry() {
-    window.location.href = this.stravaService.getAuthUrl();
+    this.stravaService.initiateAuth();
   }
 }
