@@ -2,6 +2,7 @@
 
 import secrets
 from typing import Optional
+from urllib.parse import urlencode
 
 import httpx
 
@@ -46,7 +47,7 @@ class StravaAuthService:
             "scope": scope,
             "state": oauth_state,
         }
-        query_string = "&".join(f"{k}={v}" for k, v in params.items())
+        query_string = urlencode(params)
         return f"{self.AUTHORIZE_URL}?{query_string}", oauth_state
 
     async def exchange_code(self, authorization_code: str) -> TokenResponse:
