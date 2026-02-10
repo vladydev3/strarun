@@ -1,7 +1,10 @@
 """Strava Authentication Service."""
 
-import httpx
+import secrets
 from typing import Optional
+from urllib.parse import urlencode
+
+import httpx
 
 from app.core.config import settings
 from app.models.auth import TokenResponse, StravaAthlete
@@ -22,26 +25,30 @@ class StravaAuthService:
         self,
         scope: str = "read,activity:read_all",
         approval_prompt: str = "auto",
-    ) -> str:
+        state: Optional[str] = None,
+    ) -> tuple[str, str]:
         """
         Generate Strava authorization URL.
 
         Args:
             scope: Comma-separated list of permissions
             approval_prompt: 'auto' or 'force'
+            state: Optional OAuth state (generated if not provided)
 
         Returns:
-            Authorization URL to redirect user to
+            Tuple with authorization URL and state value
         """
+        oauth_state = state or secrets.token_urlsafe(32)
         params = {
             "client_id": self.client_id,
             "response_type": "code",
             "redirect_uri": self.redirect_uri,
             "approval_prompt": approval_prompt,
             "scope": scope,
+            "state": oauth_state,
         }
-        query_string = "&".join(f"{k}={v}" for k, v in params.items())
-        return f"{self.AUTHORIZE_URL}?{query_string}"
+        query_string = urlencode(params)
+        return f"{self.AUTHORIZE_URL}?{query_string}", oauth_state
 
     async def exchange_code(self, authorization_code: str) -> TokenResponse:
         """

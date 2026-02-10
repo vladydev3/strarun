@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # Strava API
     STRAVA_CLIENT_ID: str = ""
     STRAVA_CLIENT_SECRET: str = ""
-    STRAVA_REDIRECT_URI: str = "http://localhost:8000/api/auth/callback"
+    STRAVA_REDIRECT_URI: str = "http://localhost:4200/auth/callback"
 
     # Database (for future use)
     DATABASE_URL: str = "sqlite:///./strarun.db"

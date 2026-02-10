@@ -44,7 +44,7 @@ export class SettingsComponent implements OnInit {
   }
 
   connectStrava() {
-    window.location.href = this.stravaService.getAuthUrl();
+    this.stravaService.initiateAuth();
   }
 
   disconnectStrava() {
