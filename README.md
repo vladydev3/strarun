@@ -87,6 +87,10 @@ REFRESH_COOKIE_MAX_AGE_DAYS=30
 - Los endpoints que dependen de cookies (por ejemplo `/api/auth/refresh`) validan un token CSRF en el header `X-CSRF-Token` que coincide con la cookie `CSRF_COOKIE_NAME`.
 - En desarrollo local sin HTTPS puedes configurar `COOKIE_SECURE=false` para permitir cookies en `http://localhost`.
 
+## Seguridad OAuth (state)
+
+El backend ahora genera un `state` aleatorio al iniciar OAuth (`/api/auth/strava`), lo guarda en una cookie `HttpOnly`, `SameSite=Lax` (con `Secure` cuando se usa HTTPS) y lo valida en el callback (`/api/auth/callback`). Asegúrate de iniciar el flujo desde el endpoint backend para que el estado se valide correctamente.
+
 ## Licencia
 
 MIT

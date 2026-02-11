@@ -24,8 +24,8 @@ strava_auth = StravaAuthService()
 @router.get("/strava")
 async def strava_auth_redirect():
     """
-    Redirect to Strava authorization page.
-    Initiates the OAuth2 flow with Strava.
+    Get Strava authorization URL.
+    Returns the URL for frontend to redirect user to Strava OAuth page.
     """
     if not settings.STRAVA_CLIENT_ID:
         raise HTTPException(
@@ -33,21 +33,8 @@ async def strava_auth_redirect():
             detail="Strava client ID not configured. Set STRAVA_CLIENT_ID env variable.",
         )
 
-    auth_url = strava_auth.get_authorization_url()
-    return RedirectResponse(url=auth_url)
-
-
-@router.get("/callback", response_model=TokenResponse)
-async def strava_callback(code: str, scope: str = ""):
-    """
-    Handle Strava OAuth callback.
-    Exchanges authorization code for access tokens.
-    """
-    try:
-        tokens = await strava_auth.exchange_code(code)
-        return tokens
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    auth_url, state = strava_auth.get_authorization_url()
+    return {"auth_url": auth_url, "state": state}
 
 
 def _set_auth_cookies(response: Response, tokens: TokenResponse) -> None:
