@@ -1,7 +1,7 @@
 """Statistics endpoints."""
 
 from typing import Optional
-from fastapi import APIRouter, Query, Header, HTTPException, Cookie
+from fastapi import APIRouter, Header, HTTPException, Cookie
 
 from app.models.stats import (
     DashboardStats,

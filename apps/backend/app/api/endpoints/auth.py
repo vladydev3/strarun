@@ -70,16 +70,26 @@ def _set_auth_cookies(response: Response, tokens: TokenResponse) -> None:
 @router.get("/status", response_model=AuthStatus)
 async def auth_status(
     access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
+    refresh_token: str | None = Cookie(None, alias=settings.REFRESH_TOKEN_COOKIE_NAME),
 ):
     """
     Check current authentication status.
     Returns whether the user is authenticated with Strava.
     """
     if not access_token:
+        # Check if refresh token is available
+        if refresh_token:
+            return AuthStatus(
+                authenticated=False,
+                strava_connected=False,
+                message="Access token expired; refresh available",
+                refresh_available=True,
+            )
         return AuthStatus(
             authenticated=False,
             strava_connected=False,
             message="Not authenticated",
+            refresh_available=False,
         )
 
     try:
@@ -100,14 +110,24 @@ async def auth_status(
             authenticated=True,
             strava_connected=True,
             message="Authenticated",
+            refresh_available=None,
             athlete_name=athlete_name or None,
             athlete=athlete_profile,
         )
     except Exception:
+        # Access token invalid; check if refresh is available
+        if refresh_token:
+            return AuthStatus(
+                authenticated=False,
+                strava_connected=False,
+                message="Access token expired; refresh available",
+                refresh_available=True,
+            )
         return AuthStatus(
             authenticated=False,
             strava_connected=False,
             message="Not authenticated",
+            refresh_available=False,
         )
 
 
@@ -148,6 +168,25 @@ async def refresh_token(
             raise HTTPException(status_code=401, detail="Missing refresh token")
 
         tokens = await strava_auth.refresh_tokens(refresh_token)
+
+        # Fetch athlete information to include in the refresh response
+        try:
+            client = StravaApiClient(tokens.access_token)
+            athlete = await client.get_athlete()
+            tokens.athlete = StravaAthlete(
+                id=athlete.get("id", 0),
+                firstname=athlete.get("firstname", ""),
+                lastname=athlete.get("lastname", ""),
+                profile=athlete.get("profile"),
+                profile_medium=athlete.get("profile_medium"),
+                city=athlete.get("city"),
+                state=athlete.get("state"),
+                country=athlete.get("country"),
+            )
+        except Exception:
+            # If fetching athlete fails, proceed without athlete data
+            pass
+
         _set_auth_cookies(response, tokens)
         return tokens
     except HTTPException:

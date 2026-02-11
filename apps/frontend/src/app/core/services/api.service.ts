@@ -12,7 +12,10 @@ export class ApiService {
   private baseUrl = environment.apiUrl;
 
   private getCsrfToken(): string | null {
-    const matches = document.cookie.match(/(?:^|; )strava_csrf=([^;]+)/);
+    const cookieName = environment.csrfCookieName || 'strava_csrf';
+    const escapedName = cookieName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp('(?:^|; )' + escapedName + '=([^;]+)');
+    const matches = document.cookie.match(pattern);
     return matches ? decodeURIComponent(matches[1]) : null;
   }
 

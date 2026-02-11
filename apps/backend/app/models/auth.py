@@ -61,5 +61,6 @@ class AuthStatus(BaseModel):
     authenticated: bool
     strava_connected: bool
     message: str
+    refresh_available: Optional[bool] = None
     athlete_name: Optional[str] = None
     athlete: Optional[StravaAthlete] = None
