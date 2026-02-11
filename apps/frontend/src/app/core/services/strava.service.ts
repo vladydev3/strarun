@@ -188,7 +188,9 @@ export class StravaService {
     return this.api.post<AuthToken>('/api/auth/refresh', {}).pipe(
       tap(token => {
         this.isAuthenticated.set(true);
-        this.currentAthlete.set(token.athlete);
+        if (token.athlete) {
+          this.currentAthlete.set(token.athlete);
+        }
       })
     );
   }

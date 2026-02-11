@@ -75,7 +75,7 @@ Aplicación disponible en: http://localhost:4200
 STRAVA_CLIENT_ID=tu_client_id
 STRAVA_CLIENT_SECRET=tu_client_secret
 SECRET_KEY=tu_secret_key
-COOKIE_SECURE=true
+COOKIE_SECURE=false
 ACCESS_TOKEN_COOKIE_NAME=strava_access_token
 REFRESH_TOKEN_COOKIE_NAME=strava_refresh_token
 CSRF_COOKIE_NAME=strava_csrf
