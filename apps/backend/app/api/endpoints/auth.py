@@ -168,7 +168,7 @@ async def refresh_token(
             raise HTTPException(status_code=401, detail="Missing refresh token")
 
         tokens = await strava_auth.refresh_tokens(refresh_token)
-        
+
         # Fetch athlete information to include in the refresh response
         try:
             client = StravaApiClient(tokens.access_token)
@@ -186,7 +186,7 @@ async def refresh_token(
         except Exception:
             # If fetching athlete fails, proceed without athlete data
             pass
-        
+
         _set_auth_cookies(response, tokens)
         return tokens
     except HTTPException:
