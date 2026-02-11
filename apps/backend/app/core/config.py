@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     STRAVA_CLIENT_SECRET: str = ""
     STRAVA_REDIRECT_URI: str = "http://localhost:4200/auth/callback"
 
+    # Auth cookies
+    ACCESS_TOKEN_COOKIE_NAME: str = "strava_access_token"
+    REFRESH_TOKEN_COOKIE_NAME: str = "strava_refresh_token"
+    CSRF_COOKIE_NAME: str = "strava_csrf"
+    COOKIE_SECURE: bool = False  # Set to True in production with HTTPS
+    REFRESH_COOKIE_MAX_AGE_DAYS: int = 30
+
     # Database (for future use)
     DATABASE_URL: str = "sqlite:///./strarun.db"
 

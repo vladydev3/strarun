@@ -61,6 +61,9 @@ Aplicación disponible en: http://localhost:4200
 | `/api/health` | GET | Health check |
 | `/api/auth/strava` | GET | Iniciar OAuth con Strava |
 | `/api/auth/callback` | GET | Callback de OAuth |
+| `/api/auth/token` | POST | Intercambiar code por tokens (setea cookies) |
+| `/api/auth/refresh` | POST | Renovar tokens usando cookies (requiere CSRF) |
+| `/api/auth/status` | GET | Estado de sesión actual |
 | `/api/activities` | GET | Listar actividades |
 | `/api/activities/{id}` | GET | Detalle de actividad |
 | `/api/stats` | GET | Estadísticas generales |
@@ -72,7 +75,17 @@ Aplicación disponible en: http://localhost:4200
 STRAVA_CLIENT_ID=tu_client_id
 STRAVA_CLIENT_SECRET=tu_client_secret
 SECRET_KEY=tu_secret_key
+COOKIE_SECURE=false
+ACCESS_TOKEN_COOKIE_NAME=strava_access_token
+REFRESH_TOKEN_COOKIE_NAME=strava_refresh_token
+CSRF_COOKIE_NAME=strava_csrf
+REFRESH_COOKIE_MAX_AGE_DAYS=30
 ```
+
+### Cookies y CSRF
+- El backend escribe cookies `HttpOnly` y `Secure` para los tokens (`SameSite=Lax` para access y `SameSite=Strict` para refresh).
+- Los endpoints que dependen de cookies (por ejemplo `/api/auth/refresh`) validan un token CSRF en el header `X-CSRF-Token` que coincide con la cookie `CSRF_COOKIE_NAME`.
+- En desarrollo local sin HTTPS puedes configurar `COOKIE_SECURE=false` para permitir cookies en `http://localhost`.
 
 ## Seguridad OAuth (state)
 

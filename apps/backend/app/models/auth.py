@@ -11,7 +11,7 @@ class TokenRequest(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Request model for token refresh."""
-    refresh_token: str
+    refresh_token: Optional[str] = None
 
 
 class StravaAthlete(BaseModel):
@@ -61,4 +61,6 @@ class AuthStatus(BaseModel):
     authenticated: bool
     strava_connected: bool
     message: str
+    refresh_available: Optional[bool] = None
     athlete_name: Optional[str] = None
+    athlete: Optional[StravaAthlete] = None
