@@ -46,6 +46,7 @@ export interface AuthStatus {
   authenticated: boolean;
   strava_connected: boolean;
   message: string;
+  refresh_available?: boolean;
   athlete_name?: string;
   athlete?: StravaAthlete;
 }
@@ -137,8 +138,35 @@ export class StravaService {
   private checkAuthStatus(): void {
     this.api.get<AuthStatus>('/api/auth/status').subscribe({
       next: status => {
-        this.isAuthenticated.set(status.authenticated);
-        this.currentAthlete.set(status.athlete ?? null);
+        if (status.authenticated) {
+          this.isAuthenticated.set(true);
+          this.currentAthlete.set(status.athlete ?? null);
+        } else if (status.refresh_available) {
+          // Access token expired but refresh token is available; attempt refresh
+          this.refreshToken().subscribe({
+            next: () => {
+              // After refresh, re-check status to update athlete info
+              this.api.get<AuthStatus>('/api/auth/status').subscribe({
+                next: refreshedStatus => {
+                  this.isAuthenticated.set(refreshedStatus.authenticated);
+                  this.currentAthlete.set(refreshedStatus.athlete ?? null);
+                },
+                error: () => {
+                  this.isAuthenticated.set(false);
+                  this.currentAthlete.set(null);
+                }
+              });
+            },
+            error: () => {
+              // Refresh failed; user needs to re-authenticate
+              this.isAuthenticated.set(false);
+              this.currentAthlete.set(null);
+            }
+          });
+        } else {
+          this.isAuthenticated.set(false);
+          this.currentAthlete.set(null);
+        }
       },
       error: () => {
         this.isAuthenticated.set(false);
