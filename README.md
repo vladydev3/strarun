@@ -71,8 +71,14 @@ Aplicación disponible en: http://localhost:4200
 ```
 STRAVA_CLIENT_ID=tu_client_id
 STRAVA_CLIENT_SECRET=tu_client_secret
-SECRET_KEY=tu_secret_key
+SECRET_KEY=tu_secret_key_seguro
+DEBUG=false
 ```
+
+**Requisitos de seguridad**
+- `SECRET_KEY` es obligatorio y debe ser un valor seguro (no uses el placeholder del `.env.example`).
+- `STRAVA_CLIENT_SECRET` es obligatorio y la API fallará al iniciar si falta.
+- Mantén `DEBUG=false` en entornos no locales.
 
 ## Licencia
 
