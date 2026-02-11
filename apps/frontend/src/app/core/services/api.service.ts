@@ -11,42 +11,52 @@ export class ApiService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiUrl;
 
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('strava_token');
-    if (token) {
-      const tokenData = JSON.parse(token);
-      return new HttpHeaders({
-        'Authorization': `Bearer ${tokenData.access_token}`
-      });
+  private getCsrfToken(): string | null {
+    const matches = document.cookie.match(/(?:^|; )strava_csrf=([^;]+)/);
+    return matches ? decodeURIComponent(matches[1]) : null;
+  }
+
+  private buildOptions(options?: object, includeCsrf = false): object {
+    const csrfToken = includeCsrf ? this.getCsrfToken() : null;
+    const existingHeaders = (options as { headers?: HttpHeaders } | undefined)?.headers;
+    let headers = existingHeaders ?? new HttpHeaders();
+
+    if (csrfToken) {
+      headers = headers.set('X-CSRF-Token', csrfToken);
     }
-    return new HttpHeaders();
+
+    return {
+      withCredentials: true,
+      ...options,
+      headers
+    };
   }
 
   get<T>(endpoint: string, options?: object): Observable<T> {
-    const headers = this.getAuthHeaders();
-    return this.http.get<T>(`${this.baseUrl}${endpoint}`, { headers, ...options }).pipe(
+    const requestOptions = this.buildOptions(options);
+    return this.http.get<T>(`${this.baseUrl}${endpoint}`, requestOptions).pipe(
       retry(1),
       catchError(this.handleError)
     );
   }
 
   post<T>(endpoint: string, body: unknown, options?: object): Observable<T> {
-    const headers = this.getAuthHeaders();
-    return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, { headers, ...options }).pipe(
+    const requestOptions = this.buildOptions(options, true);
+    return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, requestOptions).pipe(
       catchError(this.handleError)
     );
   }
 
   put<T>(endpoint: string, body: unknown, options?: object): Observable<T> {
-    const headers = this.getAuthHeaders();
-    return this.http.put<T>(`${this.baseUrl}${endpoint}`, body, { headers, ...options }).pipe(
+    const requestOptions = this.buildOptions(options, true);
+    return this.http.put<T>(`${this.baseUrl}${endpoint}`, body, requestOptions).pipe(
       catchError(this.handleError)
     );
   }
 
   delete<T>(endpoint: string, options?: object): Observable<T> {
-    const headers = this.getAuthHeaders();
-    return this.http.delete<T>(`${this.baseUrl}${endpoint}`, { headers, ...options }).pipe(
+    const requestOptions = this.buildOptions(options, true);
+    return this.http.delete<T>(`${this.baseUrl}${endpoint}`, requestOptions).pipe(
       catchError(this.handleError)
     );
   }

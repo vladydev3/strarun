@@ -1,7 +1,7 @@
 """Statistics endpoints."""
 
 from typing import Optional
-from fastapi import APIRouter, Query, Header, HTTPException
+from fastapi import APIRouter, Query, Header, HTTPException, Cookie
 
 from app.models.stats import (
     DashboardStats,
@@ -9,13 +9,19 @@ from app.models.stats import (
     MonthlyStats,
     ActivityTypeStats,
 )
+from app.core.config import settings
 from app.services.strava_client import StravaApiClient
 
 router = APIRouter()
 
 
-def get_access_token(authorization: str = Header(None)) -> str:
-    """Extract access token from Authorization header."""
+def get_access_token(
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
+) -> str:
+    """Extract access token from cookie or Authorization header."""
+    if access_token:
+        return access_token
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
     return authorization[7:]
@@ -24,14 +30,15 @@ def get_access_token(authorization: str = Header(None)) -> str:
 @router.get("/{athlete_id}")
 async def get_athlete_stats(
     athlete_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
 ):
     """
     Get athlete statistics from Strava.
     Returns aggregated stats for the athlete.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         stats = await client.get_athlete_stats(athlete_id)
@@ -42,14 +49,15 @@ async def get_athlete_stats(
 
 @router.get("", response_model=DashboardStats)
 async def get_dashboard_stats(
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
 ):
     """
     Get general dashboard statistics.
     Returns aggregated stats for the dashboard overview.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         # Get athlete to find ID

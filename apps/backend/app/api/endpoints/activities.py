@@ -1,16 +1,22 @@
 """Activities endpoints."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Query, HTTPException, Header
+from fastapi import APIRouter, Query, HTTPException, Header, Cookie
 
 from app.models.activity import Activity, ActivityDetail, ActivitySummary
+from app.core.config import settings
 from app.services.strava_client import StravaApiClient
 
 router = APIRouter()
 
 
-def get_access_token(authorization: str = Header(None)) -> str:
-    """Extract access token from Authorization header."""
+def get_access_token(
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
+) -> str:
+    """Extract access token from cookie or Authorization header."""
+    if access_token:
+        return access_token
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
     return authorization[7:]
@@ -18,7 +24,8 @@ def get_access_token(authorization: str = Header(None)) -> str:
 
 @router.get("", response_model=List[ActivitySummary])
 async def get_activities(
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
     activity_type: Optional[str] = Query(None, description="Filter by activity type (Run, Ride, etc.)"),
@@ -29,8 +36,8 @@ async def get_activities(
     Get list of activities.
     Returns paginated list of activity summaries.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         activities = await client.get_activities(page=page, per_page=per_page, before=before, after=after)
@@ -62,14 +69,15 @@ async def get_activities(
 @router.get("/{activity_id}", response_model=ActivityDetail)
 async def get_activity(
     activity_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
 ):
     """
     Get detailed activity by ID.
     Returns full activity details including segments and streams.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         a = await client.get_activity(activity_id)
@@ -100,14 +108,15 @@ async def get_activity(
 @router.get("/{activity_id}/laps")
 async def get_activity_laps(
     activity_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
 ):
     """
     Get activity laps.
     Returns the laps of an activity.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         laps = await client.get_activity_laps(activity_id)
@@ -119,15 +128,16 @@ async def get_activity_laps(
 @router.get("/{activity_id}/streams")
 async def get_activity_streams(
     activity_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
+    access_token: str | None = Cookie(None, alias=settings.ACCESS_TOKEN_COOKIE_NAME),
     keys: str = Query("time,distance,heartrate,altitude", description="Comma-separated stream types"),
 ):
     """
     Get activity streams (time-series data).
     Returns GPS, heartrate, altitude, and other data streams.
     """
-    access_token = get_access_token(authorization)
-    client = StravaApiClient(access_token)
+    token = get_access_token(authorization, access_token)
+    client = StravaApiClient(token)
     
     try:
         requested_keys = keys.split(",")

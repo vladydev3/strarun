@@ -42,6 +42,14 @@ export interface AuthToken {
   athlete: StravaAthlete;
 }
 
+export interface AuthStatus {
+  authenticated: boolean;
+  strava_connected: boolean;
+  message: string;
+  athlete_name?: string;
+  athlete?: StravaAthlete;
+}
+
 export interface AthleteStats {
   biggest_ride_distance: number;
   biggest_climb_elevation_gain: number;
@@ -127,16 +135,16 @@ export class StravaService {
   }
 
   private checkAuthStatus(): void {
-    const token = localStorage.getItem('strava_token');
-    if (token) {
-      const tokenData = JSON.parse(token) as AuthToken;
-      if (tokenData.expires_at * 1000 > Date.now()) {
-        this.isAuthenticated.set(true);
-        this.currentAthlete.set(tokenData.athlete);
-      } else {
-        this.refreshToken(tokenData.refresh_token);
+    this.api.get<AuthStatus>('/api/auth/status').subscribe({
+      next: status => {
+        this.isAuthenticated.set(status.authenticated);
+        this.currentAthlete.set(status.athlete ?? null);
+      },
+      error: () => {
+        this.isAuthenticated.set(false);
+        this.currentAthlete.set(null);
       }
-    }
+    });
   }
 
   getAuthUrl(): string {
@@ -152,17 +160,15 @@ export class StravaService {
   exchangeToken(code: string): Observable<AuthToken> {
     return this.api.post<AuthToken>('/api/auth/token', { code }).pipe(
       tap(token => {
-        localStorage.setItem('strava_token', JSON.stringify(token));
         this.isAuthenticated.set(true);
         this.currentAthlete.set(token.athlete);
       })
     );
   }
 
-  refreshToken(refreshToken: string): Observable<AuthToken> {
-    return this.api.post<AuthToken>('/api/auth/refresh', { refresh_token: refreshToken }).pipe(
+  refreshToken(): Observable<AuthToken> {
+    return this.api.post<AuthToken>('/api/auth/refresh', {}).pipe(
       tap(token => {
-        localStorage.setItem('strava_token', JSON.stringify(token));
         this.isAuthenticated.set(true);
         this.currentAthlete.set(token.athlete);
       })
@@ -170,7 +176,6 @@ export class StravaService {
   }
 
   logout(): void {
-    localStorage.removeItem('strava_token');
     this.cache.clearAll(); // Clear cache on logout
     this.isAuthenticated.set(false);
     this.currentAthlete.set(null);
